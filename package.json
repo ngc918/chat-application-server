@@ -23,6 +23,7 @@
 		"mongoose": "^7.3.2",
 		"morgan": "^1.10.0",
 		"nodemon": "^2.0.22",
+		"otp-generator": "^4.0.1",
 		"xss": "^1.0.14"
 	}
 }

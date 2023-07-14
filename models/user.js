@@ -47,6 +47,23 @@ const userSchema = new Schema({
 	updatedAt: {
 		type: Date,
 	},
+	verified: {
+		type: Boolean,
+		default: false,
+	},
+	otp: {
+		type: Number,
+	},
+	otp_expiry_time: {
+		type: Date,
+	},
+});
+
+userSchema.pre("save", async function (next) {
+	// This only runs if OTP is modified
+	if (!this.isModified("otp")) return next();
+	// Hash the OTP w/ the cose of 12
+	this.otp = await bcrypt.hash(this.otp, 12);
 });
 
 userSchema.methods.correctPassword = async function (
@@ -54,6 +71,10 @@ userSchema.methods.correctPassword = async function (
 	userPassword
 ) {
 	return await bcrypt.compare(canditatePassword, userPassword);
+};
+
+userSchema.methods.correctOTP = async function (canditateOTP, userOTP) {
+	return await bcrypt.compare(canditateOTP, userOTP);
 };
 
 const User = model("User", userSchema);
