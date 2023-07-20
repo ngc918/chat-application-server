@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bycryptjs");
+const crypto = require("crypto");
+
 const { Schema, model } = mongoose;
 
 const userSchema = new Schema({
@@ -32,6 +34,9 @@ const userSchema = new Schema({
 	password: {
 		type: String,
 	},
+	passwordConfirm: {
+		type: String,
+	},
 	passwordChangedAt: {
 		type: Date,
 	},
@@ -61,9 +66,9 @@ const userSchema = new Schema({
 
 userSchema.pre("save", async function (next) {
 	// This only runs if OTP is modified
-	if (!this.isModified("otp")) return next();
+	if (!this.isModified("password")) return next();
 	// Hash the OTP w/ the cose of 12
-	this.otp = await bcrypt.hash(this.otp, 12);
+	this.password = await bcrypt.hash(this.password, 12);
 });
 
 userSchema.methods.correctPassword = async function (
@@ -75,6 +80,23 @@ userSchema.methods.correctPassword = async function (
 
 userSchema.methods.correctOTP = async function (canditateOTP, userOTP) {
 	return await bcrypt.compare(canditateOTP, userOTP);
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+	const resetToken = crypto.randomBytes(32).toString("hex");
+
+	this.passwordResetToken = crypto
+		.createHash("sha256")
+		.update(resetToken)
+		.digest("hex");
+
+	this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+	return resetToken;
+};
+
+userSchema.methods.changedPasswordAfter = function (timestamp) {
+	return timestamp > this.passwordChangedAt;
 };
 
 const User = model("User", userSchema);
