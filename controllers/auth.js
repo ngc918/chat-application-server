@@ -3,6 +3,8 @@ const filterObj = require("../utils/filterObj");
 const otpGenerator = require("otp-generator");
 const crypto = require("crypto");
 
+const mailService = require("../services/mailer");
+
 //
 const User = require("../models/user");
 const { promisify } = require("util");
@@ -71,6 +73,13 @@ exports.login = async (req, res, next) => {
 	});
 
 	// Send Mail
+
+	mailService.sendEmail({
+		from: "contact@ims.com",
+		to: "user@gmail.com",
+		subject: "OTP for IMS",
+		text: `Your OTP is ${new_otp}. This is valid for 10 minutes.`,
+	});
 
 	res.status(200).json({
 		status: "success",
