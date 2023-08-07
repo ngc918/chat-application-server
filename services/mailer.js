@@ -1,41 +1,30 @@
-const sgMail = require("@sendgrid/mail");
+const nodemailer = require("nodemailer");
 
-const dotenv = require("dotenv");
+// Create a transporter
+const transporter = nodemailer.createTransport({
+	service: "Gmail",
+	auth: {
+		user: "nicolas.g9182@gmail.com", // Replace with your email
+		pass: "@Canas9182", // Replace with your email password
+	},
+});
 
-dotenv.config({ path: "../config.env" });
+// Function to send OTP email
+const sendOTPEmail = (recipientEmail, otp) => {
+	const mailOptions = {
+		from: "your.email@gmail.com", // Sender's email
+		to: recipientEmail,
+		subject: "Verification OTP",
+		text: `Your verification OTP is: ${otp}`,
+	};
 
-sgMail.setApiKey(process.env.SG_KEY);
-
-const sendSGMail = async ({
-	recipient,
-	sender,
-	subject,
-	html,
-	text,
-	attachments,
-}) => {
-	try {
-		const from = sender || "contact@ims.com";
-
-		const msg = {
-			to: recipient, // email of recipient
-			from: from, // verified user
-			subject,
-			html: html,
-			text: text,
-			attachments,
-		};
-
-		return sgMail.send(msg);
-	} catch (error) {
-		console.log(error);
-	}
+	transporter.sendMail(mailOptions, (error, info) => {
+		if (error) {
+			console.error("Error sending OTP email:", error);
+		} else {
+			console.log("OTP email sent:", info.response);
+		}
+	});
 };
 
-exports.sendEmail = async (args) => {
-	if (process.env.NODE_ENV === "development") {
-		return new Promise.resolve();
-	} else {
-		return sendSGMail(args);
-	}
-};
+module.exports = sendOTPEmail;

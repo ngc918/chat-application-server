@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bycryptjs");
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
-const { Schema, model } = mongoose;
-
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
 	firstName: {
 		type: String,
 		unique: true,
@@ -57,7 +55,7 @@ const userSchema = new Schema({
 		default: false,
 	},
 	otp: {
-		type: Number,
+		type: String,
 	},
 	otp_expiry_time: {
 		type: Date,
@@ -65,21 +63,59 @@ const userSchema = new Schema({
 });
 
 userSchema.pre("save", async function (next) {
-	// This only runs if OTP is modified
-	if (!this.isModified("password")) return next();
-	// Hash the OTP w/ the cose of 12
+	// Only run this function if password was actually modified
+	if (!this.isModified("otp") || !this.otp) return next();
+
+	// Hash the otp with cost of 12
+	this.otp = await bcrypt.hash(this.otp.toString(), 12);
+
+	console.log(this.otp.toString(), "FROM PRE SAVE HOOK");
+
+	next();
+});
+
+userSchema.pre("save", async function (next) {
+	// Only run this function if password was actually modified
+	if (!this.isModified("password") || !this.password) return next();
+
+	// Hash the password with cost of 12
 	this.password = await bcrypt.hash(this.password, 12);
+
+	//! Shift it to next hook // this.passwordChangedAt = Date.now() - 1000;
+
+	next();
+});
+
+userSchema.pre("save", function (next) {
+	if (!this.isModified("password") || this.isNew || !this.password)
+		return next();
+
+	this.passwordChangedAt = Date.now() - 1000;
+	next();
 });
 
 userSchema.methods.correctPassword = async function (
-	canditatePassword,
+	candidatePassword,
 	userPassword
 ) {
-	return await bcrypt.compare(canditatePassword, userPassword);
+	return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-userSchema.methods.correctOTP = async function (canditateOTP, userOTP) {
-	return await bcrypt.compare(canditateOTP, userOTP);
+userSchema.methods.correctOTP = async function (candidateOTP, userOTP) {
+	return await bcrypt.compare(candidateOTP, userOTP);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
+	if (this.passwordChangedAt) {
+		const changedTimeStamp = parseInt(
+			this.passwordChangedAt.getTime() / 1000,
+			10
+		);
+		return JWTTimeStamp < changedTimeStamp;
+	}
+
+	// FALSE MEANS NOT CHANGED
+	return false;
 };
 
 userSchema.methods.createPasswordResetToken = function () {
@@ -95,10 +131,5 @@ userSchema.methods.createPasswordResetToken = function () {
 	return resetToken;
 };
 
-userSchema.methods.changedPasswordAfter = function (timestamp) {
-	return timestamp > this.passwordChangedAt;
-};
-
-const User = model("User", userSchema);
-
+const User = new mongoose.model("User", userSchema);
 module.exports = User;

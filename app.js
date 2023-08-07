@@ -12,7 +12,7 @@ const mongosanitize = require("express-mongo-sanitize");
 
 const bodyParser = require("body-parser");
 
-// const xss = require("xss")r
+const xss = require("xss-clean");
 
 const cors = require("cors");
 
@@ -51,6 +51,8 @@ const limiter = rateLimit({
 });
 
 app.use("/ims", limiter);
+
+app.use(express.urlencoded({ extended: true }));
 
 app.use(mongosanitize());
 
