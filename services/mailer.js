@@ -1,30 +1,34 @@
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 
-// Create a transporter
-const transporter = nodemailer.createTransport({
-	service: "Gmail",
-	auth: {
-		user: "nicolas.g9182@gmail.com", // Replace with your email
-		pass: "@Canas9182", // Replace with your email password
-	},
-});
+// const mail = async (req, res) => {
+// 	let testAccount = await nodemailer.createTestAccount();
 
-// Function to send OTP email
-const sendOTPEmail = (recipientEmail, otp) => {
-	const mailOptions = {
-		from: "your.email@gmail.com", // Sender's email
-		to: recipientEmail,
-		subject: "Verification OTP",
-		text: `Your verification OTP is: ${otp}`,
-	};
+// 	let transporter = nodemailer.createTransport({
+// 		host: "smtp.ethereal.email",
+// 		port: 587,
+// 		secure: false,
+// 		auth: {
+// 			user: testAccount.user,
+// 			pass: testAccount.pass,
+// 		},
+// 	});
 
-	transporter.sendMail(mailOptions, (error, info) => {
-		if (error) {
-			console.error("Error sending OTP email:", error);
-		} else {
-			console.log("OTP email sent:", info.response);
-		}
-	});
-};
+// 	let message = {
+// 		from: '"Fred Foo 👻" <foo@example.com>', // sender address
+// 		to: "bar@example.com, baz@example.com", // list of receivers
+// 		subject: "Hello ✔", // Subject line
+// 		text: "Hello world?", // plain text body
+// 		html: "<b>Hello world?</b>", // html body
+// 	};
 
-module.exports = sendOTPEmail;
+// 	transporter
+// 		.sendMail(message)
+// 		.then(() => {
+// 			return res.status(201).json({ msg: "email received" });
+// 		})
+// 		.catch((error) => {
+// 			return res.status(500).json({ error });
+// 		});
+
+// 	// res.status(201).json("Mail sent!");
+// };

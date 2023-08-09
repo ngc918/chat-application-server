@@ -14,9 +14,6 @@ const resetPassword = require("../mail/resetPassword");
 const { promisify } = require("util");
 const catchAsync = require("../utils/catchAsync");
 
-const app = express();
-app.use(bodyParser.json());
-
 // this function will return you jwt token
 const signToken = (userId) => jwt.sign({ userId }, process.env.JWT_SECRET);
 
@@ -85,6 +82,13 @@ exports.sendOTP = catchAsync(async (req, res, next) => {
 	console.log(new_otp);
 
 	// TODO send mail
+	// mailService.sendEmail({
+	//   from: "shreyanshshah242@gmail.com",
+	//   to: user.email,
+	//   subject: "Verification OTP",
+	//   html: otp(user.firstName, new_otp),
+	//   attachments: [],
+	// });
 
 	res.status(200).json({
 		status: "success",
@@ -247,7 +251,13 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
 		console.log(resetURL);
 
-		mailService();
+		// mailService.sendEmail({
+		//   from: "shreyanshshah242@gmail.com",
+		//   to: user.email,
+		//   subject: "Reset Password",
+		//   html: resetPassword(user.firstName, resetURL),
+		//   attachments: [],
+		// });
 
 		res.status(200).json({
 			status: "success",
